@@ -26,18 +26,21 @@ jobs:
         auto-activate-base: false
 
     - name: Prepare mlruns & init default experiment
+      shell: bash -l {0}
       run: |
         export MLFLOW_TRACKING_URI=file:./MLProject/mlruns
         mkdir -p MLProject/mlruns
         python -c "import mlflow; mlflow.set_tracking_uri('file:MLProject/mlruns'); mlflow.create_experiment('Default') if not mlflow.get_experiment_by_name('Default') else None"
 
     - name: Run MLflow project
+      shell: bash -l {0}
       run: |
         export MLFLOW_TRACKING_URI=file:./MLProject/mlruns
         mlflow run MLProject --env-manager=local
 
     - name: Get latest run ID
       id: get_run_id
+      shell: bash -l {0}
       run: |
         export MLFLOW_TRACKING_URI=file:./MLProject/mlruns
         experiment_id=$(python -c "import mlflow; mlflow.set_tracking_uri('file:MLProject/mlruns'); print(mlflow.get_experiment_by_name('Default').experiment_id)")
@@ -53,11 +56,14 @@ jobs:
         path: MLProject/mlruns/${{ env.experiment_id }}/${{ env.MLFLOW_RUN_ID }}/artifacts
 
     - name: Log in to Docker Hub
+      shell: bash -l {0}
       run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
     - name: Build Docker Image
+      shell: bash -l {0}
       run: |
         mlflow models build-docker -m "file:MLProject/mlruns/${{ env.experiment_id }}/${{ env.MLFLOW_RUN_ID }}/artifacts/model" -n "${{ secrets.DOCKER_USERNAME }}/mlflow-model"
 
     - name: Push Docker Image
+      shell: bash -l {0}
       run: docker push ${{ secrets.DOCKER_USERNAME }}/mlflow-model
