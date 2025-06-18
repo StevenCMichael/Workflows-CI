@@ -36,6 +36,7 @@ jobs:
       shell: bash -l {0}
       run: |
         export MLFLOW_TRACKING_URI=file:./MLProject/mlruns
+        export MLFLOW_EXPERIMENT_NAME=Default
         mlflow run MLProject --env-manager=local
 
     - name: Get latest run ID
